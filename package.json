@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @bazaar/desktop",
-    "build": "npm run build -w @bazaar/desktop",
+    "build": "npm run build -w @bazaar/desktop && node scripts/copy-dist.js",
     "desktop": "npm run dev -w @bazaar/desktop",
     "electron:dev": "npm run electron:dev -w @bazaar/desktop",
     "electron:build": "npm run electron:build -w @bazaar/desktop",
