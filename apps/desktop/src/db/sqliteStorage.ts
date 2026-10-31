@@ -41,45 +41,37 @@ import {
 } from '@bazaar/shared-utils';
 
 const STORAGE_KEYS = {
-  SETTINGS: 'grocery_pos_settings_v1',
-  PRODUCTS: 'grocery_pos_products_v1',
-  SALES: 'grocery_pos_sales_v1',
-  STOCK_LOGS: 'grocery_pos_stock_logs_v1',
-  CUSTOMERS: 'grocery_pos_customers_v1',
-  SUPPLIERS: 'grocery_pos_suppliers_v1',
-  PURCHASE_ORDERS: 'grocery_pos_purchase_orders_v1',
-  EXPENSES: 'grocery_pos_expenses_v1',
-  EMPLOYEES: 'grocery_pos_employees_v1',
-  ATTENDANCE: 'grocery_pos_attendance_v1',
-  HELD_BILLS: 'grocery_pos_held_bills_v1',
-  RETURNS: 'grocery_pos_returns_v1',
-  AUDIT_LOGS: 'grocery_pos_audit_logs_v1',
-  BRANCHES: 'grocery_pos_branches_v1',
-  CASH_SHIFTS: 'grocery_pos_cash_shifts_v1',
-  CASH_TXNS: 'grocery_pos_cash_txns_v1',
-  PRICE_HISTORY: 'grocery_pos_price_history_v1',
-  CATEGORIES: 'grocery_pos_categories_v1',
-  CUSTOMER_LEDGERS: 'grocery_pos_customer_ledgers_v1',
-  RECYCLE_BIN: 'grocery_pos_recycle_bin_v1',
-  UPDATES: 'grocery_pos_updates_v1',
+  SETTINGS: 'grocery_pos_settings_v2',
+  PRODUCTS: 'grocery_pos_products_v2',
+  SALES: 'grocery_pos_sales_v2',
+  STOCK_LOGS: 'grocery_pos_stock_logs_v2',
+  CUSTOMERS: 'grocery_pos_customers_v2',
+  SUPPLIERS: 'grocery_pos_suppliers_v2',
+  PURCHASE_ORDERS: 'grocery_pos_purchase_orders_v2',
+  EXPENSES: 'grocery_pos_expenses_v2',
+  EMPLOYEES: 'grocery_pos_employees_v2',
+  ATTENDANCE: 'grocery_pos_attendance_v2',
+  HELD_BILLS: 'grocery_pos_held_bills_v2',
+  RETURNS: 'grocery_pos_returns_v2',
+  AUDIT_LOGS: 'grocery_pos_audit_logs_v2',
+  BRANCHES: 'grocery_pos_branches_v2',
+  CASH_SHIFTS: 'grocery_pos_cash_shifts_v2',
+  CASH_TXNS: 'grocery_pos_cash_txns_v2',
+  PRICE_HISTORY: 'grocery_pos_price_history_v2',
+  CATEGORIES: 'grocery_pos_categories_v2',
+  CUSTOMER_LEDGERS: 'grocery_pos_customer_ledgers_v2',
+  RECYCLE_BIN: 'grocery_pos_recycle_bin_v2',
+  UPDATES: 'grocery_pos_updates_v2',
 };
 
 export const INITIAL_SAMPLE_BRANCHES: Branch[] = [
   {
     id: 'BRANCH-01',
-    name: 'Main Supermarket Branch',
+    name: 'Main Store',
     code: 'MAIN',
-    address: 'Shop No. 12, Main Market Road, Sector 4, Bangalore',
-    phone: '+91 98765 00000',
+    address: '',
+    phone: '',
     isPrimary: true,
-  },
-  {
-    id: 'BRANCH-02',
-    name: 'MG Road Express Store',
-    code: 'MGROAD',
-    address: 'No. 45, MG Road Commercial Hub, Bangalore',
-    phone: '+91 98765 00001',
-    isPrimary: false,
   }
 ];
 
@@ -124,10 +116,10 @@ export const INITIAL_SAMPLE_UPDATES: UpdatePackage[] = [
 // Initial default shop settings
 export const DEFAULT_SETTINGS: ShopSettings = {
   shopName: 'Green Grocery & Supermarket',
-  ownerName: 'Rajesh Kumar',
-  address: 'Shop No. 12, Main Market Road, Sector 4, Bangalore - 560001',
-  phone: '+91 98765 00000',
-  gstNumber: '29XXXXX0000X1Z5',
+  ownerName: 'Store Admin',
+  address: '',
+  phone: '',
+  gstNumber: '',
   invoicePrefix: 'INV',
   currencySymbol: '₹',
   defaultTaxPercent: 0,
@@ -146,7 +138,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   enableUpiPayments: true,
   merchantName: 'Green Grocery & Supermarket',
   upiId: 'merchant@upi',
-  defaultPaymentNote: 'Thank you for shopping at Green Grocery!',
+  defaultPaymentNote: 'Thank you for your purchase!',
   upiReceiptFooter: 'QR Payment Completed via Dynamic UPI',
   merchantLogo: '',
 };
@@ -434,35 +426,13 @@ export const INITIAL_SAMPLE_SUPPLIERS: Supplier[] = [
 export const INITIAL_SAMPLE_EMPLOYEES: Employee[] = [
   {
     id: 'EMP-01',
-    name: 'Rajesh Kumar (Owner)',
-    phone: '+91 98765 00000',
-    address: 'Main Market Road, Bangalore',
-    salary: 60000,
-    joiningDate: '2023-01-01',
+    name: 'Store Admin',
+    phone: '',
+    address: '',
+    salary: 0,
+    joiningDate: new Date().toISOString().split('T')[0],
     role: 'Owner',
     pin: '1234',
-    status: 'Active',
-  },
-  {
-    id: 'EMP-02',
-    name: 'Kavitha S (Head Cashier)',
-    phone: '+91 98765 00005',
-    address: 'BTM Layout 2nd Stage, Bangalore',
-    salary: 22000,
-    joiningDate: '2024-03-15',
-    role: 'Cashier',
-    pin: '1111',
-    status: 'Active',
-  },
-  {
-    id: 'EMP-03',
-    name: 'Ramesh Gowda (Stock Manager)',
-    phone: '+91 98765 00006',
-    address: 'HSR Layout Sector 1, Bangalore',
-    salary: 25000,
-    joiningDate: '2024-01-10',
-    role: 'Inventory Staff',
-    pin: '2222',
     status: 'Active',
   }
 ];
@@ -647,14 +617,25 @@ export class LegacyLocalStorageEngine {
   private currentUser: Employee | null = null;
 
   constructor() {
+    // Automatically purge old demo data from v1 when upgrading to production clean slate
+    try {
+      if (typeof localStorage !== 'undefined') {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('grocery_pos_') && k.endsWith('_v1')) {
+            localStorage.removeItem(k);
+          }
+        });
+      }
+    } catch {}
+
     this.settings = this.loadData(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
-    this.products = this.loadData(STORAGE_KEYS.PRODUCTS, INITIAL_SAMPLE_PRODUCTS);
-    this.sales = this.loadData(STORAGE_KEYS.SALES, INITIAL_SAMPLE_SALES);
+    this.products = this.loadData(STORAGE_KEYS.PRODUCTS, []);
+    this.sales = this.loadData(STORAGE_KEYS.SALES, []);
     this.stockLogs = this.loadData(STORAGE_KEYS.STOCK_LOGS, []);
-    this.customers = this.loadData(STORAGE_KEYS.CUSTOMERS, INITIAL_SAMPLE_CUSTOMERS);
-    this.suppliers = this.loadData(STORAGE_KEYS.SUPPLIERS, INITIAL_SAMPLE_SUPPLIERS);
+    this.customers = this.loadData(STORAGE_KEYS.CUSTOMERS, []);
+    this.suppliers = this.loadData(STORAGE_KEYS.SUPPLIERS, []);
     this.purchaseOrders = this.loadData(STORAGE_KEYS.PURCHASE_ORDERS, []);
-    this.expenses = this.loadData(STORAGE_KEYS.EXPENSES, INITIAL_SAMPLE_EXPENSES);
+    this.expenses = this.loadData(STORAGE_KEYS.EXPENSES, []);
     this.employees = this.loadData(STORAGE_KEYS.EMPLOYEES, INITIAL_SAMPLE_EMPLOYEES);
     this.attendance = this.loadData(STORAGE_KEYS.ATTENDANCE, []);
     this.heldBills = this.loadData(STORAGE_KEYS.HELD_BILLS, []);
