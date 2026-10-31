@@ -27,6 +27,17 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
   const currency = settings.currencySymbol || '₹';
 
+  // Receipt & Print currency formatter:
+  // Thermal printer hardware (ESC/POS) and jsPDF use single-byte WinAnsi/ASCII encodings.
+  // The Unicode '₹' symbol (U+20B9) has lower byte 0xB9, which in ISO-8859-1 is the character '¹' (superscript 1).
+  // This causes '₹' to either print as '¹' or clobber/replace the digit 1 in printed bills.
+  // Using standard Indian retail 'Rs. ' guarantees clean, unambiguous ASCII printing on all hardware.
+  const printCurrencyPrefix = (!currency || currency === '₹' || currency.trim() === '₹') ? 'Rs. ' : `${currency.trim()} `;
+
+  const formatAmount = (num: number): string => {
+    return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+  };
+
   // Generate dynamic offline UPI QR code for the invoice
   useEffect(() => {
     if (!sale) return;
@@ -118,7 +129,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
               <head>
                 <title>Invoice - ${sale.invoiceNumber}</title>
                 <style>
-                  body { font-family: monospace, sans-serif; margin: 10px; color: #000; background: #fff; }
+                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 10px; color: #000; background: #fff; }
                   table { width: 100%; border-collapse: collapse; }
                   th, td { padding: 4px; text-align: left; font-size: 12px; }
                   .text-right { text-align: right; }
@@ -221,7 +232,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         sale.items.forEach(item => {
           doc.text(item.productName.substring(0, 20), 5, y);
           doc.text(`${item.quantity}`, 45, y, { align: 'center' });
-          doc.text(`${currency}${item.totalPrice}`, 75, y, { align: 'right' });
+          doc.text(`${printCurrencyPrefix}${formatAmount(item.totalPrice)}`, 75, y, { align: 'right' });
           y += 4;
         });
 
@@ -229,26 +240,26 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         y += 4;
 
         // Totals
-        doc.text(`Subtotal:`, 40, y);
-        doc.text(`${currency}${sale.subtotal}`, 75, y, { align: 'right' });
+        doc.text(`Subtotal:`, 35, y);
+        doc.text(`${printCurrencyPrefix}${formatAmount(sale.subtotal)}`, 75, y, { align: 'right' });
         y += 4;
 
         if (sale.discountAmount > 0) {
-          doc.text(`Discount:`, 40, y);
-          doc.text(`-${currency}${sale.discountAmount}`, 75, y, { align: 'right' });
+          doc.text(`Discount:`, 35, y);
+          doc.text(`-${printCurrencyPrefix}${formatAmount(sale.discountAmount)}`, 75, y, { align: 'right' });
           y += 4;
         }
 
         if (sale.taxAmount > 0) {
-          doc.text(`GST (${sale.taxPercent}%):`, 40, y);
-          doc.text(`${currency}${sale.taxAmount.toFixed(2)}`, 75, y, { align: 'right' });
+          doc.text(`GST (${sale.taxPercent}%):`, 35, y);
+          doc.text(`${printCurrencyPrefix}${formatAmount(sale.taxAmount)}`, 75, y, { align: 'right' });
           y += 4;
         }
 
         doc.setFont(font, 'bold');
         doc.setFontSize(10);
-        doc.text(`GRAND TOTAL:`, 35, y);
-        doc.text(`${currency}${sale.totalAmount}`, 75, y, { align: 'right' });
+        doc.text(`GRAND TOTAL:`, 30, y);
+        doc.text(`${printCurrencyPrefix}${formatAmount(sale.totalAmount)}`, 75, y, { align: 'right' });
         y += 5;
 
         // Payment Info & Splits
@@ -259,13 +270,13 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
         if (sale.paymentMode === 'Split' && sale.splitPayments) {
           sale.splitPayments.forEach(sp => {
-            doc.text(`  • ${sp.mode}: ${currency}${sp.amount}`, 5, y);
+            doc.text(`  • ${sp.mode}: ${printCurrencyPrefix}${formatAmount(sp.amount)}`, 5, y);
             y += 3.5;
           });
         }
 
         if (sale.paymentMode === 'Cash' && sale.receivedAmount > 0) {
-          doc.text(`Paid: ${currency}${sale.receivedAmount} | Change: ${currency}${sale.changeAmount}`, 5, y);
+          doc.text(`Paid: ${printCurrencyPrefix}${formatAmount(sale.receivedAmount)} | Change: ${printCurrencyPrefix}${formatAmount(sale.changeAmount)}`, 5, y);
           y += 4;
         }
 
@@ -332,11 +343,11 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         doc.setFont(font, 'normal');
         sale.items.forEach((item, idx) => {
           doc.text(`${idx + 1}`, 18, y);
-          doc.text(item.productName.substring(0, 35), 30, y);
-          doc.text(item.barcode || '', 100, y);
-          doc.text(`${currency}${item.unitSellingPrice}`, 130, y);
+          doc.text(item.productName.substring(0, 32), 28, y);
+          doc.text(item.barcode || '', 95, y);
+          doc.text(`${printCurrencyPrefix}${formatAmount(item.unitSellingPrice)}`, 130, y);
           doc.text(`${item.quantity}`, 160, y);
-          doc.text(`${currency}${item.totalPrice}`, 190, y, { align: 'right' });
+          doc.text(`${printCurrencyPrefix}${formatAmount(item.totalPrice)}`, 190, y, { align: 'right' });
           y += 6;
         });
 
@@ -344,26 +355,26 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         doc.line(15, y, 195, y);
         y += 6;
 
-        doc.text(`Subtotal:`, 140, y);
-        doc.text(`${currency}${sale.subtotal}`, 190, y, { align: 'right' });
+        doc.text(`Subtotal:`, 135, y);
+        doc.text(`${printCurrencyPrefix}${formatAmount(sale.subtotal)}`, 190, y, { align: 'right' });
         y += 5;
 
         if (sale.discountAmount > 0) {
-          doc.text(`Discount:`, 140, y);
-          doc.text(`-${currency}${sale.discountAmount}`, 190, y, { align: 'right' });
+          doc.text(`Discount:`, 135, y);
+          doc.text(`-${printCurrencyPrefix}${formatAmount(sale.discountAmount)}`, 190, y, { align: 'right' });
           y += 5;
         }
 
         if (sale.taxAmount > 0) {
-          doc.text(`Tax (${sale.taxPercent}%):`, 140, y);
-          doc.text(`${currency}${sale.taxAmount.toFixed(2)}`, 190, y, { align: 'right' });
+          doc.text(`Tax (${sale.taxPercent}%):`, 135, y);
+          doc.text(`${printCurrencyPrefix}${formatAmount(sale.taxAmount)}`, 190, y, { align: 'right' });
           y += 5;
         }
 
         doc.setFont(font, 'bold');
         doc.setFontSize(12);
-        doc.text(`Grand Total:`, 140, y);
-        doc.text(`${currency}${sale.totalAmount}`, 190, y, { align: 'right' });
+        doc.text(`Grand Total:`, 135, y);
+        doc.text(`${printCurrencyPrefix}${formatAmount(sale.totalAmount)}`, 190, y, { align: 'right' });
         y += 8;
 
         doc.setFontSize(9);
@@ -372,7 +383,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         y += 4;
 
         if (sale.paymentMode === 'Split' && sale.splitPayments) {
-          const splitSummary = sale.splitPayments.map(sp => `${sp.mode}: ${currency}${sp.amount}`).join(' | ');
+          const splitSummary = sale.splitPayments.map(sp => `${sp.mode}: ${printCurrencyPrefix}${formatAmount(sp.amount)}`).join(' | ');
           doc.text(`Breakdown: ${splitSummary}`, 15, y);
           y += 4;
         }
@@ -500,8 +511,14 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
                         {item.productName}
                       </td>
                       <td className="py-1.5 text-center">{item.quantity}</td>
-                      <td className="py-1.5 text-right">{currency}{item.unitSellingPrice}</td>
-                      <td className="py-1.5 text-right font-semibold">{currency}{item.totalPrice}</td>
+                      <td className="py-1.5 text-right font-mono">
+                        <span className="text-[10px] text-slate-500 font-sans mr-0.5">{printCurrencyPrefix}</span>
+                        {formatAmount(item.unitSellingPrice)}
+                      </td>
+                      <td className="py-1.5 text-right font-semibold font-mono">
+                        <span className="text-[10px] text-slate-500 font-sans mr-0.5">{printCurrencyPrefix}</span>
+                        {formatAmount(item.totalPrice)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -512,23 +529,35 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             <div className="py-3 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{currency}{sale.subtotal}</span>
+                <span className="font-mono">
+                  <span className="text-[10px] text-slate-500 mr-0.5">{printCurrencyPrefix}</span>
+                  {formatAmount(sale.subtotal)}
+                </span>
               </div>
               {sale.discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 font-medium">
                   <span>Discount</span>
-                  <span>-{currency}{sale.discountAmount}</span>
+                  <span className="font-mono">
+                    -<span className="text-[10px] text-slate-500 mr-0.5">{printCurrencyPrefix}</span>
+                    {formatAmount(sale.discountAmount)}
+                  </span>
                 </div>
               )}
               {sale.taxAmount > 0 && (
                 <div className="flex justify-between">
                   <span>GST / Tax ({sale.taxPercent}%)</span>
-                  <span>{currency}{sale.taxAmount.toFixed(2)}</span>
+                  <span className="font-mono">
+                    <span className="text-[10px] text-slate-500 mr-0.5">{printCurrencyPrefix}</span>
+                    {formatAmount(sale.taxAmount)}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-slate-100 pt-1 border-t border-slate-200 dark:border-slate-700">
                 <span>Total Amount</span>
-                <span>{currency}{sale.totalAmount}</span>
+                <span className="font-mono">
+                  <span className="text-xs font-normal text-slate-500 mr-0.5">{printCurrencyPrefix}</span>
+                  {formatAmount(sale.totalAmount)}
+                </span>
               </div>
             </div>
 
@@ -537,7 +566,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
               <div className="flex justify-between items-center">
                 <span>Mode: <strong>{sale.paymentMode}</strong></span>
                 {sale.paymentMode === 'Cash' && sale.receivedAmount > 0 && (
-                  <span>Recv: {currency}{sale.receivedAmount} | Change: <strong>{currency}{sale.changeAmount}</strong></span>
+                  <span>Recv: {printCurrencyPrefix}{formatAmount(sale.receivedAmount)} | Change: <strong>{printCurrencyPrefix}{formatAmount(sale.changeAmount)}</strong></span>
                 )}
                 {sale.paymentMode === 'UPI' && (
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
@@ -554,7 +583,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
                     {sale.splitPayments.map((sp, idx) => (
                       <div key={idx} className="flex justify-between px-1.5 py-0.5 bg-white/60 dark:bg-slate-800/60 rounded">
                         <span>{sp.mode}:</span>
-                        <strong>{currency}{sp.amount}</strong>
+                        <strong>{printCurrencyPrefix}{formatAmount(sp.amount)}</strong>
                       </div>
                     ))}
                   </div>
