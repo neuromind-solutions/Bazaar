@@ -1,0 +1,104 @@
+{
+  "name": "@bazaar/desktop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Bazaar POS Desktop Application (Electron + React)",
+  "author": "Your Name or Organization",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist server.js release",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx src/test-system-verification.ts",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/accessibility.spec.ts",
+    "test:mutation": "stryker run",
+    "test:all": "tsx src/test-system-verification.ts && vitest run && playwright test",
+    "lint": "tsc --noEmit",
+    "electron:dev": "electron .",
+    "electron:build": "vite build && electron-builder",
+    "electron:pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.localbusiness.grocerypos",
+    "productName": "Bazaar POS & Inventory Software",
+    "copyright": "Copyright © 2026 Your Name or Organization",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName} Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Bazaar POS & Inventory Software",
+      "uninstallDisplayName": "Bazaar POS & Inventory Software"
+    }
+  },
+  "dependencies": {
+    "@bazaar/shared-utils": "*",
+    "@google/genai": "^2.4.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/qrcode": "^1.5.6",
+    "@vitejs/plugin-react": "^5.0.4",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.12.3",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/express": "^4.17.21",
+    "@types/jsbarcode": "^3.11.4",
+    "@types/node": "^22.14.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "autoprefixer": "^10.4.21",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.25.0",
+    "jsdom": "^30.1.3",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "vitest": "^5.0.5"
+  }
+}

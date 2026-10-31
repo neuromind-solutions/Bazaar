@@ -1,0 +1,22 @@
+{
+  "name": "bazaar-pos",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Bazaar POS — Enterprise Grocery & Retail Management Platform",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @bazaar/desktop",
+    "build": "npm run build -w @bazaar/desktop",
+    "desktop": "npm run dev -w @bazaar/desktop",
+    "electron:dev": "npm run electron:dev -w @bazaar/desktop",
+    "electron:build": "npm run electron:build -w @bazaar/desktop",
+    "typecheck": "npm run typecheck -w @bazaar/desktop && tsc -p packages/shared-utils/tsconfig.json --noEmit",
+    "test": "npm run test -w @bazaar/desktop",
+    "test:e2e": "npm run test:e2e -w @bazaar/desktop",
+    "test:all": "npm run test:all -w @bazaar/desktop"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@bazaar/shared-utils",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure, platform-free business logic for Bazaar POS (loyalty, velocity, batches, pricing, etc.)",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

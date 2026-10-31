@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+bun.lock
+
+# Build outputs
+dist/
+build/
+release/
+*.tsbuildinfo
+
+# Environment (secrets)
+.env.local
+.env.*.local
+apps/desktop/.env.local
+apps/desktop/.env.*.local
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+*.suo
+*.user
+
+# Electron builder cache
+.electron/
+
+# TypeScript
+*.js.map
+*.d.ts.map
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test, Coverage & Mutation Artifacts
+coverage/
+test-results/
+playwright-report/
+.stryker-tmp/
+reports/
+
+# Internal Agent / Dev Scratch & Temporary Notes
+.github/
+.claude/
+.agents/
+metadata.json
+PROJECT_ANALYSIS.md
+PROJECT_CONTEXT.md
+TEST_PLAN.md
+BUGS_FOUND.md
+TEST_REPORT.md
